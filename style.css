@@ -1,0 +1,118 @@
+path{
+    transition: stroke-width 1.5s, stroke 1.5s;
+    stroke-width: 0.5;
+}
+
+path:hover {
+ transform: scale(1.004);
+}
+
+/* rect{
+  animation: draw 1s ease-in-out;
+  animation-name: build;
+  animation-duration: 2s;
+  animation-delay:  var(--counter)s;
+} */
+
+/**path:hover {
+  Hier selektiertes bundesland highlighten
+}**/
+
+#barcharts {
+    float: right;
+    padding-top:  50px;
+    padding-right: 200px;
+}
+
+#barchart > rect {
+  stroke: black;
+  stroke-width: 0.1;
+  animation: draw 1s ease-in-out;
+  animation-name: build;
+  animation-duration: 2s;
+  animation-fill-mode: forwards;
+  /* animation-delay :$(getElementByClass("bar").animation-delay); */
+  /* visibility: visible;  */
+}
+
+
+/* .bar {
+  animation: draw 1s ease-in-out;
+  animation-name: build;
+  animation-duration: 2s;
+  animation-delay:  calc(0.5s * var(--counter))
+}
+ */
+@keyframes build {
+  from {
+    visibility: hidden;
+    width: 0%
+  }
+
+  to {
+    visibility: visible;
+    width: $(getElementByClass("bar").width)
+  }
+} 
+
+.text {
+  font-size: 2px;
+  font-family: sans-serif;
+  fill: black;
+}
+option, select {
+  font-family: sans-serif;
+  font-size: 20px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+  }
+
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 250px;
+    background-color: darkblue;
+    color: #fff;
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+    font-size: xx-large;
+    position: absolute;
+    z-index: 1;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }
+
+  .modal {
+    display: none; /* Hidden by default */
+    position: fixed; 
+    width: 200px; 
+    height: 400px;
+  }
+  
+  .modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+  }
+  
+  /* The Close Button */
+  .close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  
+  .close:hover,
+  .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+  }
