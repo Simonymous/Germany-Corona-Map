@@ -1,5 +1,7 @@
 import { mapData } from './map-data.js'
 
+import { getPathFromCounty } from './helper.js'
+
 const data = mapData.features;
 
 const diagrammContainer = document.getElementById('barchart');
@@ -100,8 +102,8 @@ function showGraphs(state, howMany, shrinkBy) {
         setSvgElement(10, y2, diagrammContainer, 'text', topCountries[x] + ' (' + topState[x] + ')')
         setSvgElement(0, y1, diagrammContainer, 'text', Math.round(topCases[x] * 10) / 10)
 
-        y1 = y1 + 7
-        y2 = y2 + 7
+        y1 +=  7
+        y2 +=  7
 
         //     x++
         // }, 1000)
@@ -127,16 +129,6 @@ function startOutlineAnimation(county) {
     let animStrokeWith = document.getElementById("outlineAnim").value;
     pathToAnimate.style.stroke = animColor;
     pathToAnimate.style.strokeWidth = animStrokeWith;
-}
-
-function getPathFromCounty(county) {
-    const paths = document.getElementsByTagName("path")
-    for (var i = 0; i < paths.length; i++) {
-        //Path = Selektierter  LK?
-        if (paths[i].getAttribute('data-tooltip') === county) {
-            return paths[i];
-        }
-    }
 }
 
 /**

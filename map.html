@@ -10,7 +10,6 @@
 
 <body>
 
-
   <div id="barcharts">
     <select id="state" name="state" height="100" width="500 ">
     </select>
@@ -21,8 +20,6 @@
     <label for="lastWeek">Cases 100k last week</label><br>
     <input type="radio" disabled id="all" name="whatIsShown" value="all">
     <label for="all">All Cases</label>
-
-
 
     <div>
       <label for="howMany">How many Graphs are shown</label><br>
@@ -55,21 +52,22 @@
     </svg>
   </div>
 
+
+
+
   <div class="tooltip">
     <span class="tooltiptext" id="nametooltip"></span>
     <svg id="map" height="1000" width="1000"
-      style="border: 1px solid black; background: linear-gradient( rgb(183, 0, 255), rgb(255, 0, 179) )"
+      style="border: 1px solid black; background: linear-gradient( rgb(0, 0, 0), rgb(6, 0, 95) )"
       transform="scale(-1,1)rotate(180)">
     </svg>
   </div>
-
   <!-- The Modal -->
   <div id="countyInfos" class="modal">
     <!-- Modal content -->
     <div class="modal-content">
       <span class="close">&times;</span>
       <div id="modalText"></div>
-
     </div>
 
   </div>

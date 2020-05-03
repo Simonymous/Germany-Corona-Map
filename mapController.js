@@ -1,44 +1,55 @@
 import { mapData } from './map-data.js'
+import init from './eventListener.js'
+import { getMax, getKindOfCase } from './helper.js'
 const data = mapData.features
 
 const mapContainer = document.getElementById('map')
+const MapWidth = mapContainer.width.baseVal.value / 2
 
-var x = 0
-var y = 1
-// console.log(data)
-var geometryState = []
 
-let max = 0
+preDrawMap();
+init();
 
-drawMap();
 
-function getSelectedCases(id) {
-  let kindeOfCase = document.getElementsByName("whatIsShown");
+/**
+ * Gets all the needed data for the Map
+ */
+function preDrawMap() {
+  let kindOfCase = getKindOfCase();
 
-  if (kindeOfCase[0].checked) {
-    return data[id].attributes.cases_per_100k
-  } else if (kindeOfCase[1].checked) {
-    return data[id].attributes.cases7_per_100k
-  } else if (kindeOfCase[2].checked) {
-    return attributes.cases
-  }
+  let color = document.getElementById("colorpicker").value;
+
+  let strokecolor = document.getElementById("colorOutline").value;
+
+  let max = getMax(data, kindOfCase)
+
+  drawMap(kindOfCase, color, strokecolor, max);
 }
 
-function drawMap() {
+/**
+ * Composes the Map Coordinates and let them draws it
+ * @param {"cases_per_100k" | "cases7_per_100k" | "cases"} kindOfCase - What datapoints should be chosen
+ * @param {number} color - The colour, the map should be filled
+ * @param {string} strokecolor - The clour, the OUtlines are drawn with
+ * @param {number} max - The maximum, a value of the chosen case can get
+ */
+function drawMap(kindOfCase, color, strokecolor, max) {
+
+  //Run through the data points one by one
   for (let id = 0; id < data.length; id++) {
+    // The definition path for the svg element
+    // The coordinates of the path
     let output = ''
 
-    let selectedCases = getSelectedCases(id);
-
-    if (selectedCases > max) {
-      max = selectedCases
-    }
-
+    //Every part of the state (islands...)
     data[id].geometry.rings.forEach(rings => {
+      //Every data point inside these Parts
       for (let i = 0; i < rings.length; i++) {
+        //The X value (normalized value * window size)
         const x = (minMax(rings[i][0], 'X')) * mapContainer.width.baseVal.value
         const y = (minMax(rings[i][1], 'Y')) * mapContainer.height.baseVal.value
 
+        //Only in the first case, you have to move to the Point (M), otherwise you draw a Line (L)
         if (i === 0) {
           output += ` M ${x} ${y}`
         } else {
@@ -47,148 +58,150 @@ function drawMap() {
       }
     })
 
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    path.setAttribute('d', output)
-    let strokecolor = document.getElementById("colorOutline").value;
-    path.setAttribute('stroke', strokecolor)
-    console.log(strokecolor)
+    //Create the Path
+    let path = createPath(output, id, kindOfCase, color, strokecolor, max)
 
-    let brightnesspercentage = getPercent(id);
-    let color = document.getElementById("colorpicker").value;
-    path.setAttribute('fill', `hsl(${color}, 100%, ${brightnesspercentage}%)`)
-    path.setAttribute('id', id)
-
-
-    path.setAttribute('data-tooltip', data[id].attributes.county)
-
-
+    //Draw the Path on the Map
     mapContainer.appendChild(path)
   };
 
-  let oldID = 1
-  document.getElementById('map').addEventListener('mouseover', function (e) {
-    const modal = document.getElementById('countyInfos')
-    modal.style.display = 'none'
-    if (oldID !== e.target.id && e.target.id !== 'map') {
-      oldID = e.target.id
 
-      document.getElementById('nametooltip').style.visibility = 'visible'
-      document.getElementById('nametooltip').innerHTML = data[e.target.id].attributes.county
-
-      const span = document.getElementsByClassName('close')[0]
-      span.onclick = function () {
-        modal.style.display = 'none'
-      }
-    } else {
-      document.getElementById('nametooltip').innerHTML = ''
-      document.getElementById('nametooltip').style.visibility = 'hidden'
-      oldID = 1
-    }
-  })
-
-  document.getElementById('map').addEventListener('click', function (e) {
-    const id = e.target.id
-    displayModal(id, e.clientX, e.clientY)
-    document.getElementById("state").value = data[+id].attributes.BL;
-    document.getElementById("state").dispatchEvent(new Event('change'));
-  })
-
-  let caseSelection = document.getElementsByName('whatIsShown');
-  caseSelection.forEach(caseSelector => {
-    caseSelector.addEventListener('change', function (e) {
-      resetMap();
-      drawMap();
-    });
-  });
-
-  document.getElementById('colorpicker').addEventListener('change', function (e) {
-    resetMap();
-    drawMap();
-  });
-
-  document.getElementById('colorOutline').addEventListener('change', function (e) {
-    resetMap();
-    drawMap();
-  })
-
+  //Trigger an change event for the BarChart to update
   document.getElementById("state").dispatchEvent(new Event('change'));
 }
 
-function resetMap() {
-  max = 0
-  document.getElementById('map').innerHTML = '';
+/**
+ * Creates the Path, that shows the Map
+ * @param {number} output - The definition string, what the path should show
+ * @param {number} id - The ID of the stat that is currently painted
+ * @param {number} kindOfCase - Needed for the brightness
+ * @param {number} color - What should be the colour for the map
+ * @param {number} strokecolor -  The colour of the state outlines
+ * @param {number} max - The max value, needed fpor the brightness
+ */
+function createPath(output, id, kindOfCase, color, strokecolor, max) {
+  let brightnessPercentage = getBrightnessPercent(id, kindOfCase, max);
+
+  let path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  path.setAttribute('d', output)
+  path.setAttribute('stroke', strokecolor)
+  path.setAttribute('fill', `hsl(${color}, 100%, ${brightnessPercentage}%)`)
+  path.setAttribute('id', id)
+  path.setAttribute('data-tooltip', data[id].attributes.county)
+  return path;
 }
 
-function displayModal(id, x, y) {
+/**
+ * Resetting the map and creating a new one with the actual value;
+ */
+export function resetMap() {
+  document.getElementById('map').innerHTML = '';
+  preDrawMap();
+}
+
+export function displayTooltip(id, x, y) {
+
+  const tooltip = document.getElementById('nametooltip')
+  tooltip.innerHTML = data[id].attributes.county
+  if (y < MapWidth) {
+    tooltip.style.top = (y) - 30 + 'px' //Obere Hälfte
+  } else {
+    tooltip.style.top = (y) - 50 + 'px' //Untere Hälfte
+  }
+
+  if (x < MapWidth) {
+    tooltip.style.left = (x + 30) + 'px' //Linke Hälfte
+  } else {
+    tooltip.style.left = (x - 180) + 'px' //REchte Hälfte
+  }
+  tooltip.style.visibility = 'visible'
+}
+
+/**
+ * Shows a Modal for further infomation to the selected state
+ * @param {string} id - The id of the selected State
+ * @param {number} x - The X Position of the Mouse
+ * @param {number} y - The Y Position of the Mouse
+ */
+export function displayModal(id, x, y) {
+  const tooltip = document.getElementById('nametooltip')
+  tooltip.style.visibility = 'hidden'
+  //The id can be "map", if a position outside of germany is clicked -> cancel
   if (id !== "map") {
     const modal = document.getElementById('countyInfos')
     const modalContent = document.getElementById('modalText')
+
+    //reset the modal content
     modalContent.innerHTML = ''
 
+    //The X Button to close the modal
     const span = document.getElementsByClassName('close')[0]
-
     span.onclick = function () {
       modal.style.display = 'none'
     }
 
-    const tag = document.createElement('p')
-
     const dataAtribute = data[+id].attributes
 
+    //Adding the content for the Modal
     modalCompet('Landkreis: ' + dataAtribute.county, modalContent)
     modalCompet('Bundesland: ' + dataAtribute.BL, modalContent)
-
-    // Einwohnerzahl
     modalCompet('Einwohnerzahl: ' + dataAtribute.EWZ, modalContent)
-
-    // Anzahl aller Infizierten
     modalCompet('Anzahl Infizierte: ' + dataAtribute.cases, modalContent)
-
-    // pro100k
     modalCompet('Infizierte pro 100k: ' + dataAtribute.cases_per_100k, modalContent)
-
-    // Pro100k 7 Tage
     modalCompet('Infizierte pro 100k in den letzten 7 Tagen: ' + dataAtribute.cases7_per_100k, modalContent)
-
-    // Anzahl tote
     modalCompet('Anzahl Verstorbene: ' + dataAtribute.deaths, modalContent)
 
     //Set Modal To Mouse with Offset 
     //Offset makes Shure Modal is displayed in Map
-    if (y < 520) {
+    if (y < MapWidth) {
       modal.style.top = (y) + 'px'
     } else {
       modal.style.top = (y) - 380 + 'px'
     }
 
-    if (x < 520) {
+    if (x < MapWidth) {
       modal.style.left = (x) + 'px'
     } else {
       modal.style.left = (x - 200) + 'px'
     }
-    modal.style.display = 'block' //Show Modal
+
+    // Show Modal
+    modal.style.display = 'block'
   }
 }
 
+/**
+ * Composing and adding content to the Modal
+ * @param {string} text - The content, that should be added
+ * @param {string} div - Where to add the content
+ */
 function modalCompet(text, div) {
   const tag = document.createElement('p')
   tag.appendChild(document.createTextNode(text))
   div.appendChild(tag)
 }
 
-function getPercent(id) {
-  let kindeOfCase = document.getElementsByName("whatIsShown");
 
-  if (kindeOfCase[0].checked) {
-    return 100 - ((data[id].attributes.cases_per_100k / 1490) * 50);
-  } else if (kindeOfCase[1].checked) {
-    return 100 - ((data[id].attributes.cases7_per_100k / 124) * 50);
-  } else if (kindeOfCase[2].checked) {
-    return 100 - ((data[id].attributes.cases / 1490) * 50);
-  }
+
+/**
+ * Returns the Percentage to the data point in relation to the max value.
+ * 
+ * @param {number} id - The id of the current stet that is checked
+ * @param {"cases_per_100k" | "cases7_per_100k" | "cases"} kindOfCase - 
+ * @param {number} max - get the maximum value of the specified kind of case
+ */
+function getBrightnessPercent(id, kindOfCase, max) {
+  return 100 - ((data[id].attributes[kindOfCase] / max) * 50);
 }
 
-
+/**
+ * For the Germany Card.
+ * In the original data, the coordinates dont start at 0,0.
+ * Does MinMax Normalization to coordinates.
+ * 
+ * @param {number} value - The value that should be normalized.
+ * @param {"X" | "Y"} XY - Whether the value is from the X or Y axis. 
+ */
 function minMax(value, XY) {
   let min; let max = 0
 
