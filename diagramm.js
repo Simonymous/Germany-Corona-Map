@@ -2,13 +2,12 @@ import { mapData } from './map-data.js'
 
 import { getPathFromCounty } from './helper.js'
 
-const data = mapData.features;
+const data = mapData.features
 
-const diagrammContainer = document.getElementById('barchart');
+const diagrammContainer = document.getElementById('barchart')
 function go() {
-
-    const maxValue = getMax(data);
-    //console.log(maxValue);
+    const maxValue = getMax(data)
+    // console.log(maxValue);
     // Add the States and add the "Alle" function
     const states = ['Alle']
     data.forEach(element => {
@@ -25,24 +24,24 @@ function go() {
         state.options[state.options.length] = new Option(element, element)
     })
 
-    let select = "Alle";
-    let howMany = 5;
+    let select = 'Alle'
+    let howMany = 5
     // The event listener of the select field
     // For actualizing the graphs (svg)
     state.addEventListener('change', function () {
-        select = this.value;
+        select = this.value
         showGraphs(select, howMany, maxValue)
     })
 
-    const howManyAreShown = document.getElementById("howMany");
+    const howManyAreShown = document.getElementById('howMany')
     howManyAreShown.addEventListener('change', function () {
-        howMany = this.value;
-        showGraphs(select, howMany, maxValue);
+        howMany = this.value
+        showGraphs(select, howMany, maxValue)
     })
 
-    const scale = document.getElementById("scale");
+    const scale = document.getElementById('scale')
     scale.addEventListener('change', function () {
-        showGraphs(select, howMany, maxValue);
+        showGraphs(select, howMany, maxValue)
     })
 }
 
@@ -55,9 +54,9 @@ function showGraphs(state, howMany, shrinkBy) {
     const topCountries = []
     const topState = []
 
-    //console.log(shrinkBy);
+    // console.log(shrinkBy);
 
-    resetOutline();
+    resetOutline()
     // clean previous svg
     while (diagrammContainer.lastChild) {
         diagrammContainer.removeChild(diagrammContainer.lastChild)
@@ -67,11 +66,11 @@ function showGraphs(state, howMany, shrinkBy) {
     let y1 = 8
     let y2 = 7
 
-    shrinkBy = 89 / shrinkBy;
+    shrinkBy = 89 / shrinkBy
 
     for (var x = 0; x < howMany; x++) {
         data.forEach(element => {
-            let currentCases = getSelectedCases(element)
+            const currentCases = getSelectedCases(element)
 
             // Only data out of the right State/every State if "Alle" is selected
             if (state === 'Alle' || element.attributes.BL === state) {
@@ -83,7 +82,7 @@ function showGraphs(state, howMany, shrinkBy) {
                         topCountries[x] = element.attributes.county
                         topState[x] = element.attributes.BL
 
-                        if (x === 0 && !document.getElementById("scale").checked) {
+                        if (x === 0 && !document.getElementById('scale').checked) {
                             // Max width is 89
                             shrinkBy = 89 / currentCases
                         }
@@ -92,8 +91,8 @@ function showGraphs(state, howMany, shrinkBy) {
             }
         })
 
-        //break, if there is no new Data(so non undefined data is shown)
-        //TODO: Schönere Lösung !
+        // break, if there is no new Data(so non undefined data is shown)
+        // TODO: Schönere Lösung !
         if (!topCases[x]) {
             break
         }
@@ -102,33 +101,32 @@ function showGraphs(state, howMany, shrinkBy) {
         setSvgElement(10, y2, diagrammContainer, 'text', topCountries[x] + ' (' + topState[x] + ')')
         setSvgElement(0, y1, diagrammContainer, 'text', Math.round(topCases[x] * 10) / 10)
 
-        y1 +=  7
-        y2 +=  7
+        y1 += 7
+        y2 += 7
 
         //     x++
         // }, 1000)
-        startOutlineAnimation(topCountries[x]);
+        startOutlineAnimation(topCountries[x])
     }
 }
 
-//Alle Outlines wieder schwarz
+// Alle Outlines wieder schwarz
 function resetOutline() {
-    const paths = document.getElementsByTagName("path")
-    let strokecolor = document.getElementById("colorOutline").value;
+    const paths = document.getElementsByTagName('path')
+    const strokecolor = document.getElementById('colorOutline').value
     for (var i = 0; i < paths.length; i++) {
-
-        paths[i].style.stroke = strokecolor;
-        paths[i].style.strokeWidth = 0.5;
+        paths[i].style.stroke = strokecolor
+        paths[i].style.strokeWidth = 0.5
     }
 }
 
 function startOutlineAnimation(county) {
-    //TODO: Letzter LK 
-    var pathToAnimate = getPathFromCounty(county);
-    let animColor = document.getElementById("colorOutlineAnim").value;
-    let animStrokeWith = document.getElementById("outlineAnim").value;
-    pathToAnimate.style.stroke = animColor;
-    pathToAnimate.style.strokeWidth = animStrokeWith;
+    // TODO: Letzter LK
+    var pathToAnimate = getPathFromCounty(county)
+    const animColor = document.getElementById('colorOutlineAnim').value
+    const animStrokeWith = document.getElementById('outlineAnim').value
+    pathToAnimate.style.stroke = animColor
+    pathToAnimate.style.strokeWidth = animStrokeWith
 }
 
 /**
@@ -146,12 +144,12 @@ function setSvgElement(x, y, svg, elementType, attribute, id, county) {
     if (elementType === 'rect') {
         element.setAttribute('height', 3)
         element.setAttribute('width', attribute)
-        let color = getPathFromCounty(county).getAttribute("fill");
+        const color = getPathFromCounty(county).getAttribute('fill')
         element.setAttribute('fill', color)
         element.setAttribute('class', 'bar')
         element.setAttribute('id', id)
-        element.style.animationDelay = 0.5 * id + 's';
-        element.style.visibility = 'hidden';
+        element.style.animationDelay = 0.5 * id + 's'
+        element.style.visibility = 'hidden'
     } else {
         element.setAttribute('class', 'text')
         element.setAttribute('text-anchor', 'start')
@@ -161,14 +159,14 @@ function setSvgElement(x, y, svg, elementType, attribute, id, county) {
 };
 
 function getMax(data) {
-    let max = 0;
+    let max = 0
 
     data.forEach(element => {
         if (element.attributes.cases_per_100k >= max) {
-            max = element.attributes.cases_per_100k;
+            max = element.attributes.cases_per_100k
         }
     })
-    return max;
+    return max
 }
 
 go()
@@ -176,7 +174,7 @@ go()
 showGraphs('Alle', 5, 0)
 
 function getSelectedCases(element) {
-    let kindeOfCase = document.getElementsByName("whatIsShown");
+    const kindeOfCase = document.getElementsByName('whatIsShown')
 
     if (kindeOfCase[0].checked) {
         return element.attributes.cases_per_100k

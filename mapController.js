@@ -6,24 +6,22 @@ const data = mapData.features
 const mapContainer = document.getElementById('map')
 const MapWidth = mapContainer.width.baseVal.value / 2
 
-
-preDrawMap();
-init();
-
+preDrawMap()
+init()
 
 /**
  * Gets all the needed data for the Map
  */
 function preDrawMap() {
-  let kindOfCase = getKindOfCase();
+  const kindOfCase = getKindOfCase()
 
-  let color = document.getElementById("colorpicker").value;
+  const color = document.getElementById('colorpicker').value
 
-  let strokecolor = document.getElementById("colorOutline").value;
+  const strokecolor = document.getElementById('colorOutline').value
 
-  let max = getMax(data, kindOfCase)
+  const max = getMax(data, kindOfCase)
 
-  drawMap(kindOfCase, color, strokecolor, max);
+  drawMap(kindOfCase, color, strokecolor, max)
 }
 
 /**
@@ -34,22 +32,21 @@ function preDrawMap() {
  * @param {number} max - The maximum, a value of the chosen case can get
  */
 function drawMap(kindOfCase, color, strokecolor, max) {
-
-  //Run through the data points one by one
+  // Run through the data points one by one
   for (let id = 0; id < data.length; id++) {
     // The definition path for the svg element
     // The coordinates of the path
     let output = ''
 
-    //Every part of the state (islands...)
+    // Every part of the state (islands...)
     data[id].geometry.rings.forEach(rings => {
-      //Every data point inside these Parts
+      // Every data point inside these Parts
       for (let i = 0; i < rings.length; i++) {
-        //The X value (normalized value * window size)
+        // The X value (normalized value * window size)
         const x = (minMax(rings[i][0], 'X')) * mapContainer.width.baseVal.value
         const y = (minMax(rings[i][1], 'Y')) * mapContainer.height.baseVal.value
 
-        //Only in the first case, you have to move to the Point (M), otherwise you draw a Line (L)
+        // Only in the first case, you have to move to the Point (M), otherwise you draw a Line (L)
         if (i === 0) {
           output += ` M ${x} ${y}`
         } else {
@@ -58,16 +55,15 @@ function drawMap(kindOfCase, color, strokecolor, max) {
       }
     })
 
-    //Create the Path
-    let path = createPath(output, id, kindOfCase, color, strokecolor, max)
+    // Create the Path
+    const path = createPath(output, id, kindOfCase, color, strokecolor, max)
 
-    //Draw the Path on the Map
+    // Draw the Path on the Map
     mapContainer.appendChild(path)
   };
 
-
-  //Trigger an change event for the BarChart to update
-  document.getElementById("state").dispatchEvent(new Event('change'));
+  // Trigger an change event for the BarChart to update
+  document.getElementById('state').dispatchEvent(new Event('change'))
 }
 
 /**
@@ -80,39 +76,38 @@ function drawMap(kindOfCase, color, strokecolor, max) {
  * @param {number} max - The max value, needed fpor the brightness
  */
 function createPath(output, id, kindOfCase, color, strokecolor, max) {
-  let brightnessPercentage = getBrightnessPercent(id, kindOfCase, max);
+  const brightnessPercentage = getBrightnessPercent(id, kindOfCase, max)
 
-  let path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
   path.setAttribute('d', output)
   path.setAttribute('stroke', strokecolor)
   path.setAttribute('fill', `hsl(${color}, 100%, ${brightnessPercentage}%)`)
   path.setAttribute('id', id)
   path.setAttribute('data-tooltip', data[id].attributes.county)
-  return path;
+  return path
 }
 
 /**
  * Resetting the map and creating a new one with the actual value;
  */
 export function resetMap() {
-  document.getElementById('map').innerHTML = '';
-  preDrawMap();
+  document.getElementById('map').innerHTML = ''
+  preDrawMap()
 }
 
 export function displayTooltip(id, x, y) {
-
   const tooltip = document.getElementById('nametooltip')
   tooltip.innerHTML = data[id].attributes.county
   if (y < MapWidth) {
-    tooltip.style.top = (y) - 30 + 'px' //Obere Hälfte
+    tooltip.style.top = (y) - 30 + 'px' // Upper
   } else {
-    tooltip.style.top = (y) - 50 + 'px' //Untere Hälfte
+    tooltip.style.top = (y) - 50 + 'px' // Lower
   }
 
   if (x < MapWidth) {
-    tooltip.style.left = (x + 30) + 'px' //Linke Hälfte
+    tooltip.style.left = (x + 30) + 'px' // Left
   } else {
-    tooltip.style.left = (x - 180) + 'px' //REchte Hälfte
+    tooltip.style.left = (x - 180) + 'px' // Right
   }
   tooltip.style.visibility = 'visible'
 }
@@ -126,15 +121,15 @@ export function displayTooltip(id, x, y) {
 export function displayModal(id, x, y) {
   const tooltip = document.getElementById('nametooltip')
   tooltip.style.visibility = 'hidden'
-  //The id can be "map", if a position outside of germany is clicked -> cancel
-  if (id !== "map") {
+  // The id can be "map", if a position outside of germany is clicked -> cancel
+  if (id !== 'map') {
     const modal = document.getElementById('countyInfos')
     const modalContent = document.getElementById('modalText')
 
-    //reset the modal content
+    // reset the modal content
     modalContent.innerHTML = ''
 
-    //The X Button to close the modal
+    // The X Button to close the modal
     const span = document.getElementsByClassName('close')[0]
     span.onclick = function () {
       modal.style.display = 'none'
@@ -142,7 +137,7 @@ export function displayModal(id, x, y) {
 
     const dataAtribute = data[+id].attributes
 
-    //Adding the content for the Modal
+    // Adding the content for the Modal
     modalCompet('Landkreis: ' + dataAtribute.county, modalContent)
     modalCompet('Bundesland: ' + dataAtribute.BL, modalContent)
     modalCompet('Einwohnerzahl: ' + dataAtribute.EWZ, modalContent)
@@ -151,8 +146,8 @@ export function displayModal(id, x, y) {
     modalCompet('Infizierte pro 100k in den letzten 7 Tagen: ' + dataAtribute.cases7_per_100k, modalContent)
     modalCompet('Anzahl Verstorbene: ' + dataAtribute.deaths, modalContent)
 
-    //Set Modal To Mouse with Offset 
-    //Offset makes Shure Modal is displayed in Map
+    // Set Modal To Mouse with Offset
+    // Offset makes Shure Modal is displayed in Map
     if (y < MapWidth) {
       modal.style.top = (y) + 'px'
     } else {
@@ -181,26 +176,24 @@ function modalCompet(text, div) {
   div.appendChild(tag)
 }
 
-
-
 /**
  * Returns the Percentage to the data point in relation to the max value.
- * 
+ *
  * @param {number} id - The id of the current stet that is checked
- * @param {"cases_per_100k" | "cases7_per_100k" | "cases"} kindOfCase - 
+ * @param {"cases_per_100k" | "cases7_per_100k" | "cases"} kindOfCase -
  * @param {number} max - get the maximum value of the specified kind of case
  */
 function getBrightnessPercent(id, kindOfCase, max) {
-  return 100 - ((data[id].attributes[kindOfCase] / max) * 50);
+  return Math.floor(100 - ((data[id].attributes[kindOfCase] / max) * 50))
 }
 
 /**
  * For the Germany Card.
  * In the original data, the coordinates dont start at 0,0.
  * Does MinMax Normalization to coordinates.
- * 
+ *
  * @param {number} value - The value that should be normalized.
- * @param {"X" | "Y"} XY - Whether the value is from the X or Y axis. 
+ * @param {"X" | "Y"} XY - Whether the value is from the X or Y axis.
  */
 function minMax(value, XY) {
   let min; let max = 0
